@@ -4,6 +4,10 @@
  SparkFun Electronics
  Date: November 24th, 2014
  License: This code is public domain but you buy me a beer if you use this and we meet someday (Beerware license).
+ Modification 2017 (dapp.design) Jan ter Laak: automatic starting by taring the scale to zero after a initial firsttime setup is done.
+ This is useful after restoring from a power down situation and starting with zero weight on the scale or with a inital weight. It will always tare to zero.
+ calibration factor is not touched.
+ 
 
  This example code uses bogde's excellent library: https://github.com/bogde/HX711
  SparkFun spends a lot of time and energy building open source hardware and writing public domain code.
@@ -135,6 +139,25 @@ void setup()
   Serial.println(F(" to bring up settings"));
 
   Serial.println(F("Readings:"));
+ 
+ // Jan ter Laak v.1.1 startup by taring the scale to zero and status led OFF  
+      setting_calibration_factor = readBytes(LOCATION_CALIBRATION_FACTOR_MSB, sizeof(setting_calibration_factor)); //read calibration factor 
+      scale.set_scale(setting_calibration_factor); //Adjust to this calibration factor
+
+      scale.tare();  // tare mode of hx711.h
+      setting_tare_point = 0;
+     for (int x = 0 ; x < 10 ; x++)
+    {
+      setting_tare_point += scale.read(); //Get a reading
+      delay(100);
+     }
+      setting_tare_point /= 10; // average 10 reading and set taring point 
+     Serial.print(F("\n\r No weight on the scale. Tare the scale to zero: "));
+     Serial.println(setting_tare_point);
+     setting_status_enable = false;
+     digitalWrite(statusLED, LOW); //Turn off the LED
+     record_system_settings();
+  //end modification
 
 }
 
